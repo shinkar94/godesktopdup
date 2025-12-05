@@ -3,8 +3,8 @@ package dda
 import (
 	"fmt"
 
-	"go-dda/capture"
-	"go-dda/gfx11"
+	"github.com/shinkar94/godesktopdup/capture"
+	"github.com/shinkar94/godesktopdup/gfx11"
 )
 
 type DesktopDuplication struct {

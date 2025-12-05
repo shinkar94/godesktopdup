@@ -6,8 +6,8 @@ import (
 	"syscall"
 	"unsafe"
 
-	"go-dda/disp"
-	resultcode "go-dda/errors"
+	"github.com/shinkar94/godesktopdup/disp"
+	resultcode "github.com/shinkar94/godesktopdup/errors"
 )
 
 var (

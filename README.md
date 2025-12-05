@@ -1,4 +1,4 @@
-# go-dda
+# godesktopdup
 
 **Version:** v0.1.0
 
@@ -22,16 +22,16 @@ High-performance library for screen capture via Desktop Duplication API (DDA) on
 ## Installation
 
 ```bash
-go get go-dda
+go get github.com/shinkar94/godesktopdup@v0.1.0
 ```
 
 Or use a local version:
 
 ```go
 // In your go.mod
-replace go-dda => ../go-dda
+replace github.com/shinkar94/godesktopdup => ../godesktopdup
 
-require go-dda v0.1.0
+require github.com/shinkar94/godesktopdup v0.1.0
 ```
 
 ## Quick Start
@@ -41,7 +41,7 @@ package main
 
 import (
     "fmt"
-    "go-dda"
+    "github.com/shinkar94/godesktopdup"
 )
 
 func main() {
@@ -81,7 +81,7 @@ package main
 
 import (
     "time"
-    "go-dda"
+    "github.com/shinkar94/godesktopdup"
 )
 
 func captureAtFPS(dd *dda.DesktopDuplication, targetFPS int) error {
@@ -140,7 +140,7 @@ Enable cursor capture to automatically render the mouse cursor on frames:
 ```go
 package main
 
-import "go-dda"
+import "github.com/shinkar94/godesktopdup"
 
 func main() {
     dd, err := dda.New(0)
@@ -180,7 +180,7 @@ package main
 
 import (
     "fmt"
-    "go-dda"
+    "github.com/shinkar94/godesktopdup"
 )
 
 func main() {
@@ -227,7 +227,7 @@ Set monitor bounds for proper cursor positioning when using multiple monitors:
 ```go
 package main
 
-import "go-dda"
+import "github.com/shinkar94/godesktopdup"
 
 func main() {
     dd, err := dda.New(0)
@@ -263,7 +263,7 @@ package main
 import (
     "errors"
     "fmt"
-    "go-dda"
+    "github.com/shinkar94/godesktopdup"
 )
 
 func captureFrame(dd *dda.DesktopDuplication) error {
@@ -302,7 +302,7 @@ package main
 import (
     "fmt"
     "time"
-    "go-dda"
+    "github.com/shinkar94/godesktopdup"
 )
 
 type CaptureService struct {

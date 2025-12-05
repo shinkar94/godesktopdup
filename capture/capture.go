@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"unsafe"
 
-	"go-dda/disp"
-	resultcode "go-dda/errors"
-	"go-dda/gfx11"
+	"github.com/shinkar94/godesktopdup/disp"
+	resultcode "github.com/shinkar94/godesktopdup/errors"
+	"github.com/shinkar94/godesktopdup/gfx11"
 )
 
 var ErrNoImageYet = errors.New("no image yet")

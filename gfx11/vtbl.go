@@ -1,6 +1,6 @@
 package gfx11
 
-import "go-dda/interop"
+import "github.com/shinkar94/godesktopdup/interop"
 
 type DeviceChildVtbl struct {
 	interop.UnknownVtbl

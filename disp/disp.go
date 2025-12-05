@@ -4,8 +4,8 @@ import (
 	"syscall"
 	"unsafe"
 
-	"go-dda/interop"
-	resultcode "go-dda/errors"
+	"github.com/shinkar94/godesktopdup/interop"
+	resultcode "github.com/shinkar94/godesktopdup/errors"
 	"golang.org/x/sys/windows"
 )
 

@@ -1,6 +1,6 @@
 package disp
 
-import "go-dda/interop"
+import "github.com/shinkar94/godesktopdup/interop"
 
 type ObjectVtbl struct {
 	interop.UnknownVtbl

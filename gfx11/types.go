@@ -1,6 +1,6 @@
 package gfx11
 
-import "go-dda/disp"
+import "github.com/shinkar94/godesktopdup/disp"
 
 type Box struct {
 	Left, Top, Front, Right, Bottom, Back uint32

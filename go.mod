@@ -1,4 +1,4 @@
-module go-dda
+module github.com/shinkar94/godesktopdup
 
 go 1.21
 
