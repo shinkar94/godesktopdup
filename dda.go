@@ -14,12 +14,12 @@ type DesktopDuplication struct {
 }
 
 func New(outputIndex uint) (*DesktopDuplication, error) {
-	device, deviceCtx, err := gfx11.NewDevice()
+	device, deviceCtx, localOutput, err := gfx11.NewDeviceForOutput(outputIndex)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create device: %w", err)
 	}
 
-	sc, err := capture.NewScreenCapture(device, deviceCtx, outputIndex)
+	sc, err := capture.NewScreenCapture(device, deviceCtx, localOutput)
 	if err != nil {
 		device.Release()
 		deviceCtx.Release()
@@ -73,4 +73,3 @@ func (dd *DesktopDuplication) Release() {
 		dd.device.Release()
 	}
 }
-

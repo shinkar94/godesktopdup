@@ -64,7 +64,10 @@ func createDevice(ppDevice **Device, ppDeviceContext **DeviceContext) error {
 	}
 
 	defer adapter1.Release()
+	return createDeviceOnAdapter(adapter1, ppDevice, ppDeviceContext)
+}
 
+func createDeviceOnAdapter(adapter1 *disp.Adapter1, ppDevice **Device, ppDeviceContext **DeviceContext) error {
 	fflags := [...]uint32{
 		0xc100, // D3D_FEATURE_LEVEL_12_1
 		0xc000, // D3D_FEATURE_LEVEL_12_0
@@ -95,6 +98,65 @@ func createDevice(ppDevice **Device, ppDeviceContext **DeviceContext) error {
 		return resultcode.ResultCode(ret)
 	}
 	return nil
+}
+
+func NewDeviceForOutput(outputIndex uint) (*Device, *DeviceContext, uint, error) {
+	var factory1 *disp.Factory1
+	if err := disp.CreateDXGIFactory1(&factory1); err != nil {
+		return nil, nil, 0, fmt.Errorf("CreateDXGIFactory1: %w", err)
+	}
+	defer factory1.Release()
+
+	var chosen *disp.Adapter1
+	localIndex := uint(0)
+	global := uint(0)
+
+	ai := uint32(0)
+	for chosen == nil {
+		var adapter1 *disp.Adapter1
+		hr := factory1.EnumAdapters1(ai, &adapter1)
+		if resultcode.ResultCode(hr).Failed() {
+			break
+		}
+		ai++
+
+		var desc disp.AdapterDesc1
+		if hr := int32(adapter1.GetDesc1(&desc)); resultcode.ResultCode(hr).Failed() ||
+			(desc.Flags&disp.AdapterFlagSoftware) != 0 {
+			adapter1.Release()
+			continue
+		}
+
+		oi := uint32(0)
+		for {
+			var out *disp.Output
+			if resultcode.ResultCode(int32(adapter1.EnumOutputs(oi, &out))).Failed() {
+				break
+			}
+			oi++
+			if global == outputIndex {
+				chosen = adapter1
+				localIndex = uint(oi - 1)
+			}
+			global++
+			out.Release()
+		}
+		if chosen == nil {
+			adapter1.Release()
+		}
+	}
+
+	if chosen == nil {
+		return nil, nil, 0, fmt.Errorf("monitor with global index %d not found", outputIndex)
+	}
+	defer chosen.Release()
+
+	var device *Device
+	var deviceCtx *DeviceContext
+	if err := createDeviceOnAdapter(chosen, &device, &deviceCtx); err != nil {
+		return nil, nil, 0, fmt.Errorf("failed to create device on output adapter: %w", err)
+	}
+	return device, deviceCtx, localIndex, nil
 }
 
 func NewDevice() (*Device, *DeviceContext, error) {
@@ -199,4 +261,3 @@ func (obj *DeviceContext) Release() int32 {
 	)
 	return int32(ret)
 }
-
