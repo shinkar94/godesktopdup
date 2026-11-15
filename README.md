@@ -1,6 +1,6 @@
 # godesktopdup
 
-**Version:** v0.1.0
+**Version:** v0.2.1
 
 High-performance library for screen capture via Desktop Duplication API (DDA) on Windows. Returns frames in BGRA format with GPU acceleration and optimized CPU usage.
 
@@ -9,8 +9,9 @@ High-performance library for screen capture via Desktop Duplication API (DDA) on
 - **GPU-accelerated capture** via Desktop Duplication API
 - **Cursor capture** with automatic rendering on frames
 - **Multi-monitor support** with proper coordinate handling
+- **Multi-GPU support** — the capture device is created on the adapter that owns the requested output
 - **Optimized performance** with dirty rects and efficient memory operations
-- **Rotated monitor support** (90°, 180°, 270°)
+- **Rotated monitor support** (90°, 180°, 270°), including runtime orientation changes
 - **Low CPU usage** with hardware-accelerated operations
 
 ## Requirements
@@ -22,7 +23,7 @@ High-performance library for screen capture via Desktop Duplication API (DDA) on
 ## Installation
 
 ```bash
-go get github.com/shinkar94/godesktopdup@v0.1.0
+go get github.com/shinkar94/godesktopdup@v0.2.1
 ```
 
 Or use a local version:
@@ -31,7 +32,7 @@ Or use a local version:
 // In your go.mod
 replace github.com/shinkar94/godesktopdup => ../godesktopdup
 
-require github.com/shinkar94/godesktopdup v0.1.0
+require github.com/shinkar94/godesktopdup v0.2.1
 ```
 
 ## Quick Start
