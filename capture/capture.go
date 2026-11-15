@@ -26,7 +26,6 @@ type ScreenCapture struct {
 	dirtyRects    []disp.Rect
 	movedRects    []disp.DuplicationMoveRect
 	acquiredFrame bool
-	needsSwizzle  bool
 	rotation      disp.ModeRotation
 	logicalWidth  int32
 	logicalHeight int32
@@ -121,8 +120,10 @@ func (sc *ScreenCapture) Snapshot(timeoutMs uint) (func() int32, *disp.MappedRec
 	height := int32(desc.ModeDesc.Height)
 	rotation := disp.ModeRotation(desc.Rotation)
 
-	if sc.rotation == 0 {
+	if sc.rotation != rotation {
 		sc.rotation = rotation
+		sc.cachedSize = disp.Point{}
+		sc.frameInitialized = false
 	}
 
 	if desc.DesktopImageInSystemMemory != 0 {
@@ -230,9 +231,6 @@ func (sc *ScreenCapture) Snapshot(timeoutMs uint) (func() int32, *disp.MappedRec
 		}
 	} else {
 		sc.deviceCtx.CopyResource2D(sc.stagedTex, desktop2d)
-		if !sc.needsSwizzle {
-			sc.needsSwizzle = true
-		}
 		sc.dirtyRects = sc.dirtyRects[:0]
 		sc.movedRects = sc.movedRects[:0]
 	}
@@ -466,14 +464,12 @@ func (sc *ScreenCapture) copyRotatedFrame(dst, src []byte, physicalSize disp.Poi
 		}
 	} else if rotation == disp.ModeRotationRotate180 {
 		physHeightMinus1 := physHeight - 1
+		logWidthMinus1 := logWidth - 1
 		for logY := 0; logY < logHeight; logY++ {
 			dstRowStart := logY * logWidth
-			physX := logY
+			srcRowStart := (physHeightMinus1 - logY) * pitchU32
 			for logX := 0; logX < logWidth; logX++ {
-				physY := physHeightMinus1 - logX
-				srcOffset := physY*pitchU32 + physX
-				dstOffset := dstRowStart + logX
-				dstU32[dstOffset] = srcU32[srcOffset]
+				dstU32[dstRowStart+logX] = srcU32[srcRowStart+logWidthMinus1-logX]
 			}
 		}
 	} else if rotation == disp.ModeRotationRotate270 {
@@ -569,11 +565,9 @@ func newScreenCaptureFormat(device *gfx11.Device, deviceCtx *gfx11.DeviceContext
 	hr = dxgiOutput5.DuplicateOutput1(dxgiDevice1, 0, []disp.PixelFormat{
 		format,
 	}, &dup)
-	needsSwizzle := false
 
 	hrCode := resultcode.ResultCode(hr)
 	if hrCode.Failed() || dup == nil {
-		needsSwizzle = true
 		var dxgiOutput1 *disp.Output1
 		hr := dxgiOutput.QueryInterface(disp.IID_Output1, &dxgiOutput1)
 		if hr := resultcode.ResultCode(hr); hr.Failed() {
@@ -610,7 +604,6 @@ func newScreenCaptureFormat(device *gfx11.Device, deviceCtx *gfx11.DeviceContext
 		device:            device,
 		deviceCtx:         deviceCtx,
 		outputDuplication: dup,
-		needsSwizzle:      needsSwizzle,
 		dxgiOutput:        dxgiOutput5,
 	}
 
