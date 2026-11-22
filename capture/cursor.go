@@ -190,7 +190,7 @@ func (sc *ScreenCapture) drawMonochromeCursor(buffer []byte, width, height, star
 		clipRight = width - startX
 	}
 
-	bufU32 := (*[1 << 30]uint32)(unsafe.Pointer(&buffer[0]))[:len(buffer)/4]
+	bufU32 := viewU32(buffer)
 	widthU32 := width
 
 	andMaskRowStart := clipTop * andMaskPitch
@@ -242,11 +242,11 @@ func (sc *ScreenCapture) drawColorCursor(buffer []byte, width, height, startX, s
 		clipRight = width - startX
 	}
 
-	bufU32 := (*[1 << 30]uint32)(unsafe.Pointer(&buffer[0]))[:len(buffer)/4]
-	cursorU32 := (*[1 << 30]uint32)(unsafe.Pointer(&sc.cursorShapeBuffer[0]))[:len(sc.cursorShapeBuffer)/4]
+	bufU32 := viewU32(buffer)
+	cursorU32 := viewU32(sc.cursorShapeBuffer)
 	widthU32 := width
 	cursorPitchU32 := cursorPitch / 4
-	
+
 	maxCursorBufferU32 := len(sc.cursorShapeBuffer) / 4
 
 	for y := clipTop; y < clipBottom; y++ {
@@ -272,26 +272,26 @@ func (sc *ScreenCapture) drawColorCursor(buffer []byte, width, height, startX, s
 			}
 
 			dstOffset := dstRowStart + x
-			
+
 			if a == 255 {
 				bufU32[dstOffset] = cursorPixel | 0xFF000000
 			} else {
 				alpha := uint16(a)
 				invAlpha := 255 - alpha
 				bgPixel := bufU32[dstOffset]
-				
+
 				bgB := uint16(bgPixel & 0xFF)
 				bgG := uint16((bgPixel >> 8) & 0xFF)
 				bgR := uint16((bgPixel >> 16) & 0xFF)
-				
+
 				curB := uint16(cursorPixel & 0xFF)
 				curG := uint16((cursorPixel >> 8) & 0xFF)
 				curR := uint16((cursorPixel >> 16) & 0xFF)
-				
+
 				newB := byte((bgB*invAlpha + curB*alpha) / 255)
 				newG := byte((bgG*invAlpha + curG*alpha) / 255)
 				newR := byte((bgR*invAlpha + curR*alpha) / 255)
-				
+
 				bufU32[dstOffset] = uint32(newB) | (uint32(newG) << 8) | (uint32(newR) << 16) | 0xFF000000
 			}
 		}
@@ -328,8 +328,8 @@ func (sc *ScreenCapture) drawMaskedColorCursor(buffer []byte, width, height, sta
 		clipRight = width - startX
 	}
 
-	bufU32 := (*[1 << 30]uint32)(unsafe.Pointer(&buffer[0]))[:len(buffer)/4]
-	xorU32 := (*[1 << 30]uint32)(unsafe.Pointer(&xorMask[0]))[:len(xorMask)/4]
+	bufU32 := viewU32(buffer)
+	xorU32 := viewU32(xorMask)
 	widthU32 := width
 	xorMaskPitchU32 := xorMaskPitch / 4
 

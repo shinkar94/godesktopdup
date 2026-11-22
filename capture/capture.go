@@ -40,7 +40,7 @@ type ScreenCapture struct {
 	lastOutputPtr    uintptr
 	frameInitialized bool
 
-	cachedIsVertical  bool
+	cachedIsVertical   bool
 	cachedContentWidth int
 	cachedDataWidth    int
 	cachedSize         disp.Point
@@ -266,7 +266,7 @@ func (sc *ScreenCapture) GetFrameBGRA(buffer []byte, timeoutMs uint) error {
 		contentWidth = int(size.X) * 4
 		dataWidth = int(mappedRect.Pitch)
 		isVertical = sc.logicalWidth > 0 && sc.logicalHeight > 0 && sc.logicalWidth < sc.logicalHeight
-		
+
 		sc.cachedContentWidth = contentWidth
 		sc.cachedDataWidth = dataWidth
 		sc.cachedIsVertical = isVertical
@@ -286,6 +286,96 @@ func (sc *ScreenCapture) GetFrameBGRA(buffer []byte, timeoutMs uint) error {
 	physicalHeight := int(size.Y)
 	logicalWidthInt := int(sc.logicalWidth)
 	logicalHeightInt := int(sc.logicalHeight)
+
+	// Rotated outputs with the desktop image in system memory: the mapped
+	// surface is in the panel's NATIVE orientation (e.g. portrait rows on a
+	// landscape desktop) and must be transposed into the logical (desktop)
+	// orientation per the DXGI rotation value. The mapped pitch tells the
+	// native layout: pitch == logicalHeight*4 means native width == logical
+	// height (portrait rows for a landscape desktop).
+	if sc.rotation != disp.ModeRotationIdentity && sc.rotation != disp.ModeRotationUnspecified {
+		switch sc.rotation {
+		case disp.ModeRotationRotate270:
+			if int(mappedRect.Pitch) != logicalHeightInt*4 {
+				break
+			}
+			// The native layout has logicalWidthInt rows (one per logical
+			// column) - re-slice data to cover them (the default slice only
+			// covers pitch*size.Y rows).
+			data = unsafe.Slice((*byte)(mappedRect.PBits), int(mappedRect.Pitch)*logicalWidthInt)
+			// logical(x, y) = native(row = x, col = logicalHeight-1-y)
+			for y := 0; y < logicalHeightInt; y++ {
+				dstRow := y * logicalWidthInt * 4
+				srcCol := (logicalHeightInt - 1 - y) * 4
+				for x := 0; x < logicalWidthInt; x++ {
+					srcOff := x*dataWidth + srcCol
+					dstOff := dstRow + x*4
+					buffer[dstOff] = data[srcOff]
+					buffer[dstOff+1] = data[srcOff+1]
+					buffer[dstOff+2] = data[srcOff+2]
+					buffer[dstOff+3] = data[srcOff+3]
+				}
+			}
+			if sc.captureCursor {
+				if err := sc.drawCursor(buffer, logicalWidthInt, logicalHeightInt); err != nil {
+					_ = err
+				}
+			}
+			sc.frameInitialized = true
+			sc.lastOutputPtr = outputPtr
+			return nil
+		case disp.ModeRotationRotate90:
+			if int(mappedRect.Pitch) != logicalHeightInt*4 {
+				break
+			}
+			data = unsafe.Slice((*byte)(mappedRect.PBits), int(mappedRect.Pitch)*logicalHeightInt)
+			// logical(x, y) = native(row = logicalWidth-1-x, col = y)
+			for y := 0; y < logicalHeightInt; y++ {
+				dstRow := y * logicalWidthInt * 4
+				for x := 0; x < logicalWidthInt; x++ {
+					srcOff := (logicalWidthInt-1-x)*dataWidth + y*4
+					dstOff := dstRow + x*4
+					buffer[dstOff] = data[srcOff]
+					buffer[dstOff+1] = data[srcOff+1]
+					buffer[dstOff+2] = data[srcOff+2]
+					buffer[dstOff+3] = data[srcOff+3]
+				}
+			}
+			if sc.captureCursor {
+				if err := sc.drawCursor(buffer, logicalWidthInt, logicalHeightInt); err != nil {
+					_ = err
+				}
+			}
+			sc.frameInitialized = true
+			sc.lastOutputPtr = outputPtr
+			return nil
+		case disp.ModeRotationRotate180:
+			if int(mappedRect.Pitch) != logicalWidthInt*4 {
+				break
+			}
+			// logical(x, y) = native(row = logicalHeight-1-y, col = logicalWidth-1-x)
+			for y := 0; y < logicalHeightInt; y++ {
+				dstRow := y * logicalWidthInt * 4
+				srcRow := (logicalHeightInt - 1 - y) * logicalWidthInt * 4
+				for x := 0; x < logicalWidthInt; x++ {
+					srcOff := srcRow + (logicalWidthInt-1-x)*4
+					dstOff := dstRow + x*4
+					buffer[dstOff] = data[srcOff]
+					buffer[dstOff+1] = data[srcOff+1]
+					buffer[dstOff+2] = data[srcOff+2]
+					buffer[dstOff+3] = data[srcOff+3]
+				}
+			}
+			if sc.captureCursor {
+				if err := sc.drawCursor(buffer, logicalWidthInt, logicalHeightInt); err != nil {
+					_ = err
+				}
+			}
+			sc.frameInitialized = true
+			sc.lastOutputPtr = outputPtr
+			return nil
+		}
+	}
 
 	if isVertical && (physicalWidth != logicalWidthInt || physicalHeight != logicalHeightInt) {
 		if err := sc.copyRotatedFrame(buffer, data, *size, mappedRect.Pitch, sc.rotation, sc.logicalWidth, sc.logicalHeight); err != nil {
@@ -341,9 +431,9 @@ func (sc *ScreenCapture) copyFullFrame(buffer []byte, data []byte, size disp.Poi
 		if contentWidth%4 == 0 && dataWidth%4 == 0 {
 			pixelsPerRow := contentWidth / 4
 			dataWidthU32 := dataWidth / 4
-			bufU32 := (*[1 << 30]uint32)(unsafe.Pointer(&buffer[0]))[:len(buffer)/4]
-			dataU32 := (*[1 << 30]uint32)(unsafe.Pointer(&data[0]))[:len(data)/4]
-			
+			bufU32 := viewU32(buffer)
+			dataU32 := viewU32(data)
+
 			imgStart := 0
 			dataStart := 0
 			for i := 0; i < height; i++ {
@@ -373,9 +463,9 @@ func (sc *ScreenCapture) copyDirtyRegions(buffer []byte, data []byte, size disp.
 	maxWidth := int(size.X)
 	maxHeight := int(size.Y)
 
-	bufU32 := (*[1 << 30]uint32)(unsafe.Pointer(&buffer[0]))[:len(buffer)/4]
-	dataU32 := (*[1 << 30]uint32)(unsafe.Pointer(&data[0]))[:len(data)/4]
-	
+	bufU32 := viewU32(buffer)
+	dataU32 := viewU32(data)
+
 	dataWidthU32 := dataWidth / 4
 	contentWidthU32 := contentWidth / 4
 
@@ -446,12 +536,12 @@ func (sc *ScreenCapture) copyRotatedFrame(dst, src []byte, physicalSize disp.Poi
 
 	pitchInt := int(pitch)
 	pitchU32 := pitchInt / 4
-	dstU32 := (*[1 << 30]uint32)(unsafe.Pointer(&dst[0]))[:len(dst)/4]
-	srcU32 := (*[1 << 30]uint32)(unsafe.Pointer(&src[0]))[:len(src)/4]
+	dstU32 := viewU32(dst)
+	srcU32 := viewU32(src)
 
 	if rotation == disp.ModeRotationRotate90 {
 		physHeightMinus1 := physHeight - 1
-		
+
 		for logY := 0; logY < logHeight; logY++ {
 			dstRowStart := logY * logWidth
 			physX := logY

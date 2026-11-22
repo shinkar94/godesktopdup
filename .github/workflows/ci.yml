@@ -1,0 +1,37 @@
+name: CI
+
+# Runs on every push and PR: format check, vet and build checks for both
+# supported architectures (windows/amd64 + windows/386 — the 386 build
+# requires the portable viewU32 casts).
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: gofmt
+        run: test -z "$(gofmt -l .)"
+        shell: bash
+
+      - name: vet
+        run: go vet ./...
+
+      - name: build (windows/amd64)
+        run: go build ./...
+
+      - name: build check (windows/386)
+        run: go build ./...
+        env:
+          GOARCH: "386"

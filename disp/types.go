@@ -14,11 +14,15 @@ type Rational struct {
 
 type ModeRotation uint32
 
+// Constants aligned with DXGI_MODE_ROTATION (the previous set was shifted
+// by one vs DXGI: Identity was 0 and Rotate270 was 3, while DXGI defines
+// UNSPECIFIED=0, IDENTITY=1, ROTATE90=2, ROTATE180=3, ROTATE270=4).
 const (
-	ModeRotationIdentity   ModeRotation = 0 // No rotation
-	ModeRotationRotate90   ModeRotation = 1 // 90° clockwise
-	ModeRotationRotate180  ModeRotation = 2 // 180°
-	ModeRotationRotate270  ModeRotation = 3 // 270° clockwise (90° counter-clockwise)
+	ModeRotationUnspecified ModeRotation = 0
+	ModeRotationIdentity    ModeRotation = 1 // No rotation
+	ModeRotationRotate90    ModeRotation = 2 // 90° clockwise
+	ModeRotationRotate180   ModeRotation = 3 // 180°
+	ModeRotationRotate270   ModeRotation = 4 // 270° clockwise (90° counter-clockwise)
 )
 
 type OutputDesc struct {
@@ -87,9 +91,9 @@ type MappedRect struct {
 type DuplicationPointerShapeType uint32
 
 const (
-	DuplicationPointerShapeTypeMonochrome   DuplicationPointerShapeType = 1
-	DuplicationPointerShapeTypeColor        DuplicationPointerShapeType = 2
-	DuplicationPointerShapeTypeMaskedColor  DuplicationPointerShapeType = 4
+	DuplicationPointerShapeTypeMonochrome  DuplicationPointerShapeType = 1
+	DuplicationPointerShapeTypeColor       DuplicationPointerShapeType = 2
+	DuplicationPointerShapeTypeMaskedColor DuplicationPointerShapeType = 4
 )
 
 type DuplicationPointerShapeInfo struct {
@@ -129,8 +133,7 @@ type AdapterDesc1 struct {
 type PixelFormat uint32
 
 const (
-	PixelFormatUnknown                PixelFormat = 0
-	PixelFormatB8G8R8A8Unorm          PixelFormat = 87
-	PixelFormatR8G8B8A8Unorm         PixelFormat = 28
+	PixelFormatUnknown       PixelFormat = 0
+	PixelFormatB8G8R8A8Unorm PixelFormat = 87
+	PixelFormatR8G8B8A8Unorm PixelFormat = 28
 )
-

@@ -1,6 +1,6 @@
 # godesktopdup
 
-**Version:** v0.2.1
+**Version:** v0.3.0
 
 High-performance library for screen capture via Desktop Duplication API (DDA) on Windows. Returns frames in BGRA format with GPU acceleration and optimized CPU usage.
 
@@ -23,7 +23,7 @@ High-performance library for screen capture via Desktop Duplication API (DDA) on
 ## Installation
 
 ```bash
-go get github.com/shinkar94/godesktopdup@v0.2.1
+go get github.com/shinkar94/godesktopdup@v0.3.0
 ```
 
 Or use a local version:
