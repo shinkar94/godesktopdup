@@ -5,4 +5,3 @@ type UnknownVtbl struct {
 	AddRef         uintptr
 	Release        uintptr
 }
-

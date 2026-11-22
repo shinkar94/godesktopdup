@@ -20,4 +20,3 @@ func QueryInterface(self interface{}, method uintptr, interfaceID *windows.GUID,
 
 	return int32(hr)
 }
-

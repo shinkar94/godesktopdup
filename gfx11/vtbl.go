@@ -52,7 +52,7 @@ type DeviceContextVtbl struct {
 	RSSetViewports                            uintptr
 	RSSetScissorRects                         uintptr
 	CopySubresourceRegion                     uintptr
-	CopyResource                               uintptr
+	CopyResource                              uintptr
 }
 
 type DeviceVtbl struct {
@@ -70,7 +70,7 @@ type DeviceVtbl struct {
 	CreateGeometryShader                 uintptr
 	CreateGeometryShaderWithStreamOutput uintptr
 	CreatePixelShader                    uintptr
-	CreateHullShader                      uintptr
+	CreateHullShader                     uintptr
 	CreateDomainShader                   uintptr
 	CreateComputeShader                  uintptr
 	CreateClassLinkage                   uintptr
@@ -106,8 +106,7 @@ type Texture2DVtbl struct {
 
 type ResourceVtbl struct {
 	DeviceChildVtbl
-	GetType                       uintptr
-	SetEvictionPriority           uintptr
-	GetEvictionPriority           uintptr
+	GetType             uintptr
+	SetEvictionPriority uintptr
+	GetEvictionPriority uintptr
 }
-

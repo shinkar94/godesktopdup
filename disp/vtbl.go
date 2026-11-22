@@ -116,4 +116,3 @@ type Factory1Vtbl struct {
 	EnumAdapters1 uintptr
 	IsCurrent     uintptr
 }
-

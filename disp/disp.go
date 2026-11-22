@@ -4,8 +4,8 @@ import (
 	"syscall"
 	"unsafe"
 
-	"github.com/shinkar94/godesktopdup/interop"
 	resultcode "github.com/shinkar94/godesktopdup/errors"
+	"github.com/shinkar94/godesktopdup/interop"
 	"golang.org/x/sys/windows"
 )
 
@@ -13,11 +13,11 @@ var (
 	modDXGI                = windows.NewLazySystemDLL("dxgi.dll")
 	procCreateDXGIFactory1 = modDXGI.NewProc("CreateDXGIFactory1")
 
-	IID_Device1, _   = windows.GUIDFromString("{77db970f-6276-48ba-ba28-070143b4392c}")
-	IID_Adapter1, _  = windows.GUIDFromString("{29038f61-3839-4626-91fd-086879011a05}")
-	IID_Output1, _   = windows.GUIDFromString("{00cddea8-939b-4b83-a340-a685226666cc}")
-	IID_Output5, _   = windows.GUIDFromString("{80A07424-AB52-42EB-833C-0C42FD282D98}")
-	IID_Factory1, _  = windows.GUIDFromString("{770aae78-f26f-4dba-a829-253c83d1b387}")
+	IID_Device1, _  = windows.GUIDFromString("{77db970f-6276-48ba-ba28-070143b4392c}")
+	IID_Adapter1, _ = windows.GUIDFromString("{29038f61-3839-4626-91fd-086879011a05}")
+	IID_Output1, _  = windows.GUIDFromString("{00cddea8-939b-4b83-a340-a685226666cc}")
+	IID_Output5, _  = windows.GUIDFromString("{80A07424-AB52-42EB-833C-0C42FD282D98}")
+	IID_Factory1, _ = windows.GUIDFromString("{770aae78-f26f-4dba-a829-253c83d1b387}")
 	IID_Surface, _  = windows.GUIDFromString("{cafcb56c-6ac3-4889-bf47-9e23bbd260ec}")
 )
 
@@ -420,4 +420,3 @@ func (obj *OutputDuplication) ReleaseFrame() uint32 {
 	)
 	return uint32(ret)
 }
-

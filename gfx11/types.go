@@ -32,4 +32,3 @@ const (
 	CPUAccessRead = 0x20000
 	SDKVersion    = 7
 )
-
