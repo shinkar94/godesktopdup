@@ -158,6 +158,17 @@ func (obj *Output) GetParent(iid windows.GUID, pp *unsafe.Pointer) int32 {
 	return int32(ret)
 }
 
+// GetDesc fills the DXGI_OUTPUT_DESC for this output (device name, desktop
+// coordinates, rotation). Required for diagnosing rotated panels (tablets).
+func (obj *Output) GetDesc(p *OutputDesc) uint32 {
+	ret, _, _ := syscall.SyscallN(
+		obj.vtbl.GetDesc,
+		uintptr(unsafe.Pointer(obj)),
+		uintptr(unsafe.Pointer(p)),
+	)
+	return uint32(ret)
+}
+
 func (obj *Output) Release() int32 {
 	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.Release,
